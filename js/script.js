@@ -1,21 +1,102 @@
 "use strict";
+const table = document.getElementById("placesTable");
+const table2 = document.getElementById("sortedPlacesTable");
+const input = document.getElementById("search");
+const inputRight = document.getElementById("searchRight");
 main();
 
+//TODO Заголовок в таблице () Регионы -> Районый -> Сельсоветы -> Пункты;
+//TODO Раздельная прокрутка левой и правой таблицы (overflow Y)
+//TODO Подсветка элемента в левой таблице, содержимое которого сейчас в правой;
+//TODO Слить активацию левых/правых
+//TODO Слить в 1 функцию turnBack() setLeftContents() setRightContents();
+
 async function main(){
-    const table = document.getElementById("placesTable");
-    console.log(table);
-    let dataArray = Array();
+    let leftTableData = Array();
+    let rightTableData = Array();
+
+    let dataArray = Array(); //TODO убрать из глобала
+    let SelectedElement;
     await load();
     const placeArray = await initPlaceArray();
-    await drawPlaces();
+    await setLeftContents(true);
+    await drawLeft();
 
-    async function drawPlaces(){
-        for(let i = 0; i<placeArray.length; i++){
-            await drawTable(placeArray[i]);
+
+    input.addEventListener("keyup", findLeft);
+    inputRight.addEventListener("keyup", findRight);
+    document.addEventListener('keydown', function(event) {
+        if (event.code == 'KeyZ' && (event.ctrlKey || event.metaKey)) {
+            turnBack();
+            drawLeft();
+        }
+    });
+
+
+    table.onclick = async function selectElement( event){
+        let target = event.target.parentElement;
+        if (target.tagName === 'TR'){
+            if (SelectedElement === target){
+                SelectedElement.classList.remove('selected');
+                SelectedElement = null;
+                hideTable2();
+                return;
+
+            } else {
+                if(SelectedElement!=null){
+                    SelectedElement.classList.remove('selected');
+                    hideTable2();
+                }
+                SelectedElement = target;
+                target.classList.add('selected');
+                await showTable2();
+            }
+        }
+    }
+    table2.onclick = async function selectElementInTable2( event){
+        let target = event.target.parentElement;
+        if (target.tagName === 'TR'){
+            if (SelectedElement === target){
+                SelectedElement.classList.remove('selected');
+                SelectedElement = null;
+                hideTable2();
+                return;
+
+            } else {
+                if(SelectedElement!=null){
+                    SelectedElement.classList.remove('selected');
+                    hideTable2();
+                }
+                SelectedElement = target;
+                target.classList.add('selected');
+                await showTable2();
+            }
         }
     }
 
-    async function drawTable(place){
+
+
+
+
+    async function drawLeftByName(name){
+        table.replaceChildren();
+
+        for(let i = 0; i<leftTableData.length; i++){
+            if(leftTableData[i].name.toLowerCase().includes(name.toLowerCase())){
+                await drawTableRow(leftTableData[i], table);
+            }
+        }
+    }
+    async function drawRightByName(name){
+        table2.replaceChildren();
+
+        for(let i = 0; i<rightTableData.length; i++){
+            if(rightTableData[i].name.toLowerCase().includes(name.toLowerCase())){
+                await drawTableRow(rightTableData[i], table2);
+            }
+        }
+    }
+    async function drawTableRow(place, tableToDraw){
         let tableRow = document.createElement('tr');
         let td1 = document.createElement('td');
         let td2 = document.createElement('td');
@@ -27,12 +108,13 @@ async function main(){
 
         tableRow.append(td1);
         tableRow.append(td2);
+        tableRow.id = (place.code1+"-"+place.code2+"-"+place.code3+"-"+place.code4+"-"+place.code6+"-"+place.level);
 
-        table.append(tableRow);
+        tableToDraw.append(tableRow);
     }
 
     async function load(){
-        let response = await fetch('http://localhost:63342/Prac4/data/small.csv');
+        let response = await fetch('http://localhost:63342/Prac4/data/oktmo.csv');
         let data = await response.text();
         let stringsData = data.split(/\n/);
         for(let i = 0; i<stringsData.length; i++){
@@ -45,7 +127,20 @@ async function main(){
             try{
                 let regExp = new RegExp(/(\d+)";"(\d+)";"(\d+)";"(\d+)";"\d";"(\d)";"(.*?)"/);
                 let temp = dataArray[i].match(regExp);
-                console.log("OK");
+                let level = 0;
+                if(temp[1]!=0){
+                    level++;
+                }
+                if(temp[2]!=0){
+                    level++;
+                }
+                if(temp[3]!=0){
+                    level++;
+                }
+                if(temp[4]!=0){
+                    level++;
+                }
+
                 placeArray.push(
                     {
                         code1: Number(temp[1]),
@@ -53,14 +148,237 @@ async function main(){
                         code3: Number(temp[3]),
                         code4: Number(temp[4]),
                         code6: Number(temp[5]),
-                        name: String(temp[6])
+                        name: String(temp[6]),
+                        level: Number(level)
                     }
                 )
             } catch (Error){
-                console.log("Мать сдохла");
+                alert("Мать сдохла"+ i);
+                continue;
             }
         }
         return placeArray;
+    }
+
+
+
+
+
+//TODO drawByName(Left/right);
+
+    function findLeft(e){
+        if (e.target.value.length >=3){
+            drawLeftByName(e.target.value);
+        } else {
+            drawLeft();
+        }
+    }
+    function findRight(e){
+        if (e.target.value.length >=3){
+            drawRightByName(e.target.value);
+        } else {
+            drawRight();
+        }
+    }
+
+
+    async function showTable2(){
+        await setLeftContents();
+        await drawLeft();
+        await setRightContents();
+        await drawRight();
+        inputRight.classList.remove('hidden');
+    }
+    async function hideTable2(){
+        table2.replaceChildren();
+        inputRight.classList.add('hidden');
+    }
+
+    async function drawLeft() {
+        table.replaceChildren();
+        for(let i = 0; i<leftTableData.length; i++){
+            await drawTableRow(leftTableData[i], table);
+        }
+    }
+    async function drawRight() {
+        console.log("drawRight(): Рисуем правую"); //TODO remove logger
+        console.log(rightTableData);
+        table2.replaceChildren();
+        for(let i = 0; i<rightTableData.length; i++){
+            await drawTableRow(rightTableData[i], table2);
+        }
+    }
+    
+    async function setLeftContents(isInit){
+        console.log("setLeftContents()"); //TODO remove logger
+        if(isInit){
+            leftTableData = [];
+            for(let i = 0; i<placeArray.length; i++){
+                if(placeArray[i].level === 1 && placeArray[i].code6 === 2){
+                    leftTableData.push(placeArray[i]);
+                }
+            }
+        } else {
+            let parse = SelectedElement.id.split("-");
+            let code1 = Number(parse[0]);
+            let code2 = Number(parse[1]);
+            let code3 = Number(parse[2]);
+            let code4 = Number(parse[3]);
+            let code6 = Number(parse[4]);
+            let level = Number(parse[5]);
+            let nextLevel = level+1;
+            console.log("setLeftContents() level:"+level+" code1:"+code1); //TODO remove logger
+            leftTableData = [];
+
+            switch (level){
+                case 1:{
+                    for(let i = 0; i<placeArray.length; i++){
+                        if(placeArray[i].level === level && placeArray[i].code6 === 2){
+                            leftTableData.push(placeArray[i]);
+                        }
+                    }
+                    break;
+                }
+                case 2:{
+                    for(let i = 0; i<placeArray.length; i++){
+                        if(placeArray[i].level === level && placeArray[i].code1 === code1){
+                            leftTableData.push(placeArray[i]);
+                        }
+                    }
+                    break;
+                }
+                case 3:{
+                    //TODO Заголовки для таблицы
+                    for(let i = 0; i<placeArray.length; i++){
+                        if(placeArray[i].level === level && placeArray[i].code1 === code1 && placeArray[i].code2 === code2){
+                            leftTableData.push(placeArray[i]);
+                        }
+                    }
+                    break;
+                }
+                case 4:{
+                    for(let i = 0; i<placeArray.length; i++){
+                        if(placeArray[i].level === level && placeArray[i].code1 === code1 && placeArray[i].code2 === code2 && placeArray[i].code3 === code3){
+                            leftTableData.push(placeArray[i]);
+                        }
+                    }
+                    break;
+                }
+            }
+            console.log(leftTableData); //TODO remove logger
+        }
+    }
+    async function setRightContents(isInit){
+        if(isInit){
+            rightTableData = [];
+            console.log("setRightContents(true): добавляем контент в правую таблицу"); //TODO remove logger
+            for(let i = 0; i<placeArray.length; i++){
+                if(placeArray[i].level === 1 && placeArray[i].code6 === 2){
+                    rightTableData.push(placeArray[i]);
+                }
+            }
+        } else {
+            console.log("setRightContents(false): добавляем контент в правую таблицу"); //TODO remove logger
+            let parse = SelectedElement.id.split("-");
+            let code1 = Number(parse[0]);
+            let code2 = Number(parse[1]);
+            let code3 = Number(parse[2]);
+            let code4 = Number(parse[3]);
+            let code6 = Number(parse[4]);
+            let level = Number(parse[5]);
+            let nextLevel = level+1;
+            console.log("setRightContents(false): "+nextLevel); //TODO remove logger
+            rightTableData = [];
+            switch (nextLevel){
+                case 1:{
+                    console.log("setRightContents(false): случай 1"); //TODO remove logger
+                    for(let i = 0; i<placeArray.length; i++){
+                        if(placeArray[i].level === 1 && placeArray[i].code6 === 2){
+                            rightTableData.push(placeArray[i]);
+                        }
+                    }
+                    break;
+                }
+                case 2:{
+                    console.log("setRightContents(false): случай 2"); //TODO remove logger
+                    for(let i = 0; i<placeArray.length; i++){
+                        if(placeArray[i].level === nextLevel && placeArray[i].code1 === code1){
+                            rightTableData.push(placeArray[i]);
+                        }
+                    }
+                    console.log(rightTableData); //TODO remove logger
+                    break;
+                }
+                case 3:{
+                    console.log("setRightContents(false): случай 3"); //TODO remove logger
+                    for(let i = 0; i<placeArray.length; i++){
+                        if(placeArray[i].level === nextLevel && placeArray[i].code1 === code1 && placeArray[i].code2 === code2){
+                            rightTableData.push(placeArray[i]);
+                        }
+                    }
+                    break;
+                }
+                case 4:{
+                    console.log("setRightContents(false): случай 4"); //TODO remove logger
+                    for(let i = 0; i<placeArray.length; i++){
+                        if(placeArray[i].level === nextLevel && placeArray[i].code1 === code1 && placeArray[i].code2 === code2 && placeArray[i].code3 === code3){
+                            rightTableData.push(placeArray[i]);
+                        }
+                    }
+                    break;
+                }
+            }
+
+        }
+    }
+    function turnBack(){
+        let parse = SelectedElement.id.split("-");
+        let code1 = Number(parse[0]);
+        let code2 = Number(parse[1]);
+        let code3 = Number(parse[2]);
+        let code4 = Number(parse[3]);
+        let code6 = Number(parse[4]);
+        let level = Number(parse[5]);
+        level--;
+        console.log("setLeftContents() level:"+level+" code1:"+code1); //TODO remove logger
+        leftTableData = [];
+
+        switch (level){
+            case 1:{
+                for(let i = 0; i<placeArray.length; i++){
+                    if(placeArray[i].level === level && placeArray[i].code6 === 2){
+                        leftTableData.push(placeArray[i]);
+                    }
+                }
+                break;
+            }
+            case 2:{
+                for(let i = 0; i<placeArray.length; i++){
+                    if(placeArray[i].level === level && placeArray[i].code1 === code1){
+                        leftTableData.push(placeArray[i]);
+                    }
+                }
+                break;
+            }
+            case 3:{
+                for(let i = 0; i<placeArray.length; i++){
+                    if(placeArray[i].level === level && placeArray[i].code1 === code1 && placeArray[i].code2 === code2){
+                        leftTableData.push(placeArray[i]);
+                    }
+                }
+                break;
+            }
+            case 4:{
+                for(let i = 0; i<placeArray.length; i++){
+                    if(placeArray[i].level === level && placeArray[i].code1 === code1 && placeArray[i].code2 === code2 && placeArray[i].code3 === code3){
+                        leftTableData.push(placeArray[i]);
+                    }
+                }
+                break;
+            }
+        }
+        console.log(leftTableData); //TODO remove logger
+
     }
 
 }
