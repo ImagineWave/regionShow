@@ -80,6 +80,9 @@ async function main(){
 
     async function drawLeftByName(name){
         table.replaceChildren();
+        await drawTableHead(table);
+
+
 
         for(let i = 0; i<leftTableData.length; i++){
             if(leftTableData[i].name.toLowerCase().includes(name.toLowerCase())){
@@ -88,13 +91,70 @@ async function main(){
         }
     }
     async function drawRightByName(name){
-        table2.replaceChildren();
+        table.replaceChildren();
+        await drawTableHead(table);
+
 
         for(let i = 0; i<rightTableData.length; i++){
             if(rightTableData[i].name.toLowerCase().includes(name.toLowerCase())){
                 await drawTableRow(rightTableData[i], table2);
             }
         }
+    }
+    /*
+    <thead>
+        <tr>
+            <th scope="col">Items</th>
+            <th scope="col">Expenditure</th>
+        </tr>
+    </thead>
+    */
+    async function drawTableHead(tableToDraw) {
+        console.log("Зашел в заголовок") //TODO remove logger
+        let parse;
+        let level;
+        if(SelectedElement!= null){
+            parse = SelectedElement.id.split("-");
+            level = Number(parse[5]);
+        } else {
+            level = 1;
+        }
+        if(tableToDraw===table2){
+            level++;
+        }
+
+        let tableHead = document.createElement('thead');
+        let tableRow = document.createElement('tr');
+        let th1 = document.createElement('th');
+        let th2 = document.createElement('th');
+        switch (level){
+            case 1 :{
+                th1.innerText = "Регионы";
+                break;
+            }
+            case 2 :{
+                th1.innerText = "Районы";
+                break;
+            }
+            case 3 :{
+                th1.innerText = "Сельсоветы";
+                break;
+            }
+            case 4 :{
+                th1.innerText = "Населенные пункты";
+                break;
+            }
+            default: {
+                console.log("Мать сдохла")
+            }
+        }
+        th2.innerText = "Коды";
+        tableRow.append(th2);
+        tableRow.append(th1);
+        tableHead.append(tableRow);
+
+        tableToDraw.append(tableHead);
+
     }
     async function drawTableRow(place, tableToDraw){
         let tableRow = document.createElement('tr');
@@ -196,14 +256,14 @@ async function main(){
 
     async function drawLeft() {
         table.replaceChildren();
+        await drawTableHead(table);
         for(let i = 0; i<leftTableData.length; i++){
             await drawTableRow(leftTableData[i], table);
         }
     }
     async function drawRight() {
-        console.log("drawRight(): Рисуем правую"); //TODO remove logger
-        console.log(rightTableData);
         table2.replaceChildren();
+        await drawTableHead(table2);
         for(let i = 0; i<rightTableData.length; i++){
             await drawTableRow(rightTableData[i], table2);
         }
