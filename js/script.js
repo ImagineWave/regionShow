@@ -20,8 +20,8 @@ async function main(){
     let SelectedElement;
     await load();
     const placeArray = initPlaceArray();
-    await setLeftContents(true, leftTableData);
-    await drawLeft();
+    await setContents(leftTableData);
+    await drawLeft(table, leftTableData);
 
 
     input.addEventListener("keyup", findLeft);
@@ -29,7 +29,7 @@ async function main(){
     document.addEventListener('keydown', function(event) {
         if (event.code == 'KeyZ' && (event.ctrlKey || event.metaKey)) {
             turnBack();
-            drawLeft();
+            drawLeft(table, leftTableData);
         }
     });
 
@@ -234,7 +234,7 @@ async function main(){
         if (e.target.value.length >=3){
             drawLeftByName(e.target.value);
         } else {
-            drawLeft();
+            drawLeft(table, leftTableData);
         }
     }
     function findRight(e){
@@ -247,9 +247,9 @@ async function main(){
 
 
     async function showTable2(){
-        await setLeftContents(false, leftTableData);
-        await drawLeft();
-        await setRightContents();
+        await setContents(leftTableData);
+        await drawLeft(table, leftTableData);
+        await setContents(rightTableData);
         await drawRight();
         inputRight.classList.remove('hidden');
     }
@@ -258,11 +258,11 @@ async function main(){
         inputRight.classList.add('hidden');
     }
 
-    async function drawLeft() {
-        table.replaceChildren();
-        await drawTableHead(table);
-        for(let i = 0; i<leftTableData.length; i++){
-            await drawTableRow(leftTableData[i], table);
+    async function drawLeft(tableToDraw, data) {
+        tableToDraw.replaceChildren();
+        await drawTableHead(tableToDraw);
+        for(let i = 0; i<data.length; i++){
+            await drawTableRow(data[i], tableToDraw);
         }
     }
     async function drawRight() {
@@ -273,10 +273,9 @@ async function main(){
         }
     }
     
-    async function setLeftContents(isInit, tableData){
-        console.log("setLeftContents()"); //TODO remove logger
+    async function setContents(tableData){
         tableData.length = 0; // Замени на "tableData = [];" и охуевай ☻
-        if(isInit){
+        if(SelectedElement == null){
             for(let i = 0; i<placeArray.length; i++){
                 if(placeArray[i].level === 1 && placeArray[i].code6 === 2){
                     tableData.push(placeArray[i]);
@@ -290,6 +289,9 @@ async function main(){
             let code4 = Number(parse[3]);
             let code6 = Number(parse[4]);
             let level = Number(parse[5]);
+            if(tableData === rightTableData){
+                level++;
+            }
             console.log("setLeftContents() level:"+level+" code1:"+code1); //TODO remove logger
             switch (level){
                 case 1:{
