@@ -3,6 +3,7 @@ const table = document.getElementById("placesTable");
 const table2 = document.getElementById("sortedPlacesTable");
 const input = document.getElementById("search");
 const inputRight = document.getElementById("searchRight");
+
 main();
 
 //TODO Заголовок в таблице () Регионы -> Районый -> Сельсоветы -> Пункты;
@@ -18,8 +19,8 @@ async function main(){
     let dataArray = Array(); //TODO убрать из глобала
     let SelectedElement;
     await load();
-    const placeArray = await initPlaceArray();
-    await setLeftContents(true);
+    const placeArray = initPlaceArray();
+    await setLeftContents(true, leftTableData);
     await drawLeft();
 
 
@@ -184,7 +185,7 @@ async function main(){
             dataArray.push(stringsData[i]);
         }
     }
-    async function initPlaceArray(){
+    function initPlaceArray(){
         let placeArray = Array();
         for (let i = 0; i<dataArray.length; i++) {
             try{
@@ -246,7 +247,7 @@ async function main(){
 
 
     async function showTable2(){
-        await setLeftContents();
+        await setLeftContents(false, leftTableData);
         await drawLeft();
         await setRightContents();
         await drawRight();
@@ -272,13 +273,13 @@ async function main(){
         }
     }
     
-    async function setLeftContents(isInit){
+    async function setLeftContents(isInit, tableData){
         console.log("setLeftContents()"); //TODO remove logger
+        tableData.length = 0; // Замени на "tableData = [];" и охуевай ☻
         if(isInit){
-            leftTableData = [];
             for(let i = 0; i<placeArray.length; i++){
                 if(placeArray[i].level === 1 && placeArray[i].code6 === 2){
-                    leftTableData.push(placeArray[i]);
+                    tableData.push(placeArray[i]);
                 }
             }
         } else {
@@ -289,15 +290,12 @@ async function main(){
             let code4 = Number(parse[3]);
             let code6 = Number(parse[4]);
             let level = Number(parse[5]);
-            let nextLevel = level+1;
             console.log("setLeftContents() level:"+level+" code1:"+code1); //TODO remove logger
-            leftTableData = [];
-
             switch (level){
                 case 1:{
                     for(let i = 0; i<placeArray.length; i++){
                         if(placeArray[i].level === level && placeArray[i].code6 === 2){
-                            leftTableData.push(placeArray[i]);
+                            tableData.push(placeArray[i]);
                         }
                     }
                     break;
@@ -305,16 +303,15 @@ async function main(){
                 case 2:{
                     for(let i = 0; i<placeArray.length; i++){
                         if(placeArray[i].level === level && placeArray[i].code1 === code1){
-                            leftTableData.push(placeArray[i]);
+                            tableData.push(placeArray[i]);
                         }
                     }
                     break;
                 }
                 case 3:{
-                    //TODO Заголовки для таблицы
                     for(let i = 0; i<placeArray.length; i++){
                         if(placeArray[i].level === level && placeArray[i].code1 === code1 && placeArray[i].code2 === code2){
-                            leftTableData.push(placeArray[i]);
+                            tableData.push(placeArray[i]);
                         }
                     }
                     break;
@@ -322,13 +319,13 @@ async function main(){
                 case 4:{
                     for(let i = 0; i<placeArray.length; i++){
                         if(placeArray[i].level === level && placeArray[i].code1 === code1 && placeArray[i].code2 === code2 && placeArray[i].code3 === code3){
-                            leftTableData.push(placeArray[i]);
+                            tableData.push(placeArray[i]);
                         }
                     }
                     break;
                 }
             }
-            console.log(leftTableData); //TODO remove logger
+            console.log(tableData); //TODO remove logger
         }
     }
     async function setRightContents(isInit){
