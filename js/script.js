@@ -169,6 +169,9 @@ async function main(){
         tableRow.append(td1);
         tableRow.append(td2);
         tableRow.id = (place.code1+"-"+place.code2+"-"+place.code3+"-"+place.code4+"-"+place.code6+"-"+place.level);
+        if(SelectedElement != null && SelectedElement.id === tableRow.id){
+            tableRow.classList.add('selected');
+        }
 
         tableToDraw.append(tableRow);
     }
