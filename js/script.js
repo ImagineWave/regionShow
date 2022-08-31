@@ -29,46 +29,27 @@ async function main(){
             drawTable(table, leftTableData);
         }
     });
-    table.onclick = async function selectElement( event){
-        let target = event.target.parentElement;
-        if (target.tagName === 'TR'){
-            if (SelectedElement === target){
-                SelectedElement.classList.remove('selected');
-                SelectedElement = null;
-                hideTable2();
-                return;
-
-            } else {
-                if(SelectedElement!=null){
+   table.onclick = tableOnClick;
+   table2.onclick = tableOnClick;
+   function tableOnClick(event){
+       {
+            let target = event.target.parentElement;
+            if (target.tagName === 'TR'){
+                if (SelectedElement === target){
                     SelectedElement.classList.remove('selected');
-                    hideTable2();
-                }
-                SelectedElement = target;
-                target.classList.add('selected');
-                await showTable2();
-            }
-        }
-    }
-    table2.onclick = async function selectElementInTable2( event){
-        let target = event.target.parentElement;
-        if (target.tagName === 'TR'){
-            if (SelectedElement === target){
-                SelectedElement.classList.remove('selected');
-                SelectedElement = null;
-                hideTable2();
-                return;
+                    SelectedElement = null;
 
-            } else {
-                if(SelectedElement!=null){
-                    SelectedElement.classList.remove('selected');
-                    hideTable2();
+                } else {
+                    if(SelectedElement!=null){
+                        SelectedElement.classList.remove('selected');
+                    }
+                    SelectedElement = target;
+                    target.classList.add('selected');
+                    showTable2();
                 }
-                SelectedElement = target;
-                target.classList.add('selected');
-                await showTable2();
             }
-        }
-    }
+       }
+   }
     async function drawTableByName(name, tableToDraw, data){
         tableToDraw.replaceChildren();
         await drawTableHead(tableToDraw);
@@ -80,12 +61,13 @@ async function main(){
         }
     }
     async function drawTableHead(tableToDraw) {
-        console.log("Зашел в заголовок") //TODO remove logger
         let parse;
         let level;
+        let code3;
         if(SelectedElement!= null){
             parse = SelectedElement.id.split("-");
             level = Number(parse[5]);
+            code3 = Number(parse[2]);
         } else {
             level = 1;
         }
@@ -106,15 +88,19 @@ async function main(){
                 break;
             }
             case 3 :{
-                th1.innerText = "Сельсоветы";
-                break;
+                if(code3 === 0){
+                    th1.innerText = "Населенные пункты";
+                    break;
+                } else {
+                    th1.innerText = "Сельсоветы";
+                    break;
+                }
             }
             case 4 :{
                 th1.innerText = "Населенные пункты";
                 break;
             }
             default: {
-                console.log("Мать сдохла")
             }
         }
         th2.innerText = "Коды";
@@ -182,7 +168,7 @@ async function main(){
                     }
                 )
             } catch (Error){
-                alert("Мать сдохла"+ i);
+                alert("Произошла ошибка"+ i);
                 continue;
             }
         }
@@ -202,16 +188,15 @@ async function main(){
             drawTable(table2, rightTableData);
         }
     }
-    async function showTable2(){
-        await setContents(leftTableData);
-        await drawTable(table, leftTableData);
-        await setContents(rightTableData);
-        await drawTable(table2, rightTableData);
-        inputRight.classList.remove('hidden');
-    }
-    async function hideTable2(){
-        table2.replaceChildren();
-        inputRight.classList.add('hidden');
+     function showTable2(){
+         setContents(leftTableData);
+         setContents(rightTableData);
+         if(rightTableData.length == 0){
+             return;
+         }
+         drawTable(table, leftTableData);
+         drawTable(table2, rightTableData);
+         inputRight.classList.remove('hidden');
     }
 
     async function drawTable(tableToDraw, data) {
@@ -221,8 +206,8 @@ async function main(){
             await drawTableRow(data[i], tableToDraw);
         }
     }
-    async function setContents(tableData){
-        tableData.length = 0; // Замени на "tableData = [];" и охуевай ☻
+    function setContents(tableData){
+        tableData.length = 0; // Замени на "tableData = [];" и развлекайся ☻
         if(SelectedElement == null){
             for(let i = 0; i<placeArray.length; i++){
                 if(placeArray[i].level === 1 && placeArray[i].code6 === 2){
@@ -238,7 +223,6 @@ async function main(){
             if(tableData === rightTableData){
                 level++;
             }
-            console.log("setLeftContents() level:"+level+" code1:"+code1); //TODO remove logger
             switch (level){
                 case 1:{
                     for(let i = 0; i<placeArray.length; i++){
@@ -273,7 +257,6 @@ async function main(){
                     break;
                 }
             }
-            console.log(tableData); //TODO remove logger
         }
     }
     function turnBack(){
@@ -283,7 +266,6 @@ async function main(){
         let code3 = Number(parse[2]);
         let level = Number(parse[5]);
         level--;
-        console.log("setLeftContents() level:"+level+" code1:"+code1); //TODO remove logger
         leftTableData = [];
 
         switch (level){
@@ -320,8 +302,6 @@ async function main(){
                 break;
             }
         }
-        console.log(leftTableData); //TODO remove logger
-
     }
 
 }
