@@ -18,8 +18,8 @@ async function main(){
     let SelectedElement;
     await load();
     const placeArray = initPlaceArray();
-    await setContents(leftTableData);
-    await drawTable(table, leftTableData);
+    setContents(leftTableData);
+    drawTable(table, leftTableData);
 
     input.addEventListener("keyup", findLeft);
     inputRight.addEventListener("keyup", findRight);
@@ -50,17 +50,17 @@ async function main(){
             }
        }
    }
-    async function drawTableByName(name, tableToDraw, data){
+   function drawTableByName(name, tableToDraw, data){
         tableToDraw.replaceChildren();
-        await drawTableHead(tableToDraw);
+        drawTableHead(tableToDraw);
 
         for(let i = 0; i<data.length; i++){
             if(data[i].name.toLowerCase().includes(name.toLowerCase())){
-                await drawTableRow(data[i], tableToDraw);
+                 drawTableRow(data[i], tableToDraw);
             }
         }
     }
-    async function drawTableHead(tableToDraw) {
+    function drawTableHead(tableToDraw) {
         let parse;
         let level;
         let code3;
@@ -109,7 +109,7 @@ async function main(){
         tableHead.append(tableRow);
         tableToDraw.append(tableHead);
     }
-    async function drawTableRow(place, tableToDraw){
+    function drawTableRow(place, tableToDraw){
         let tableRow = document.createElement('tr');
         let td1 = document.createElement('td');
         let td2 = document.createElement('td');
@@ -199,11 +199,11 @@ async function main(){
          inputRight.classList.remove('hidden');
     }
 
-    async function drawTable(tableToDraw, data) {
+     function drawTable(tableToDraw, data) {
         tableToDraw.replaceChildren();
-        await drawTableHead(tableToDraw);
+        drawTableHead(tableToDraw);
         for(let i = 0; i<data.length; i++){
-            await drawTableRow(data[i], tableToDraw);
+            drawTableRow(data[i], tableToDraw);
         }
     }
     function setContents(tableData){
